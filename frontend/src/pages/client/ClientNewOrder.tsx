@@ -37,6 +37,11 @@ export function ClientNewOrder() {
     tariffId: defaultInspectionTariff?.id ?? '',
   });
 
+  const activeInspectionTariff = useMemo(
+    () => tariffsInspection.find((t) => t.id === inspectionForm.tariffId),
+    [tariffsInspection, inspectionForm.tariffId]
+  );
+
   const [selectionForm, setSelectionForm] = useState({
     city: 'Москва',
     cityTarget: 'Москва и МО',
@@ -85,7 +90,7 @@ export function ClientNewOrder() {
         phone: clientForm.phone || '+7 (900) 000-00-00',
         email: clientForm.email || undefined,
       },
-      priceSegment: inspectionForm.tariffId || 'Тариф не выбран',
+      priceSegment: activeInspectionTariff?.priceSegment ?? 'Не указан',
       summary: inspectionForm.summary || 'Комментарий от клиента',
       expertId: null,
       appointmentAt: null,

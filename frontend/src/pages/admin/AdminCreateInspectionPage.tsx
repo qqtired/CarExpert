@@ -25,7 +25,6 @@ export function AdminCreateInspectionPage() {
     clientPhone: '',
     clientEmail: '',
     sellerContact: '',
-    priceSegment: defaultTariff?.priceSegment ?? '1.5–3 млн ₽',
     tariffId: defaultTariff?.id ?? '',
     summary: '',
   });
@@ -62,8 +61,6 @@ export function AdminCreateInspectionPage() {
       setForm((prev) => ({
         ...prev,
         tariffId,
-        priceSegment: tariff.priceSegment,
-        price: typeof tariff.amount === 'number' ? tariff.amount : prev.price,
       }));
     } else {
       setSelectionForm((prev) => ({
@@ -91,7 +88,7 @@ export function AdminCreateInspectionPage() {
       city: form.city,
       client: { name: form.clientName || 'Клиент', phone: form.clientPhone || '+7 (900) 000-00-00', email: form.clientEmail || undefined },
       sellerContact: form.sellerContact || undefined,
-      priceSegment: form.priceSegment,
+      priceSegment: activeTariff?.priceSegment ?? 'Не указан',
       summary: form.summary || 'Комментарий от клиента',
       tariffId: activeTariff?.id,
       expertId: null,
@@ -196,10 +193,6 @@ export function AdminCreateInspectionPage() {
               <div className="field">
                 <label>Город</label>
                 <input value={form.city} onChange={(e) => update('city', e.target.value)} />
-              </div>
-              <div className="field">
-                <label>Сегмент цены</label>
-                <input value={form.priceSegment} onChange={(e) => update('priceSegment', e.target.value)} />
               </div>
             </div>
 

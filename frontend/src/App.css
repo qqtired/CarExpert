@@ -201,6 +201,22 @@
   box-shadow: 0 10px 24px rgba(142, 45, 253, 0.35);
 }
 
+.chip--danger {
+  background: rgba(250, 93, 93, 0.12);
+  color: #c03232;
+  border-color: rgba(250, 93, 93, 0.3);
+}
+
+.chip.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(142, 45, 253, 0.18);
+}
+
+.chip--danger.is-active {
+  border-color: #c03232;
+  box-shadow: 0 6px 18px rgba(250, 93, 93, 0.18);
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;

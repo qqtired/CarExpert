@@ -102,17 +102,27 @@ export function ClientSelectionDetailsPage() {
                   )}
                 </td>
                 <td>
-                  <span className="badge">
-                    <span className="badge__dot" />
-                    {c.status === 'APPROVED' ? 'Подходит' : c.status === 'REJECTED' ? 'Не подходит' : 'В рассмотрении'}
-                  </span>
+                  {c.inspectionId ? (() => {
+                    const linked = inspections.find((i) => i.id === c.inspectionId);
+                    return linked ? <StatusBadge status={linked.status} /> : <span className="badge">Нет осмотра</span>;
+                  })() : (
+                    <span className="badge">Нет осмотра</span>
+                  )}
                 </td>
                 <td>
                   <div className="actions">
-                    <button className="chip chip--primary" onClick={() => onCandidate(c, 'APPROVED')}>
+                    <button
+                      className={`chip ${c.status === 'APPROVED' ? 'chip--primary is-active' : 'chip--ghost'}`}
+                      onClick={() => onCandidate(c, 'APPROVED')}
+                      aria-pressed={c.status === 'APPROVED'}
+                    >
                       Подходит
                     </button>
-                    <button className="chip chip--ghost" onClick={() => onCandidate(c, 'REJECTED')}>
+                    <button
+                      className={`chip ${c.status === 'REJECTED' ? 'chip--danger is-active' : 'chip--ghost'}`}
+                      onClick={() => onCandidate(c, 'REJECTED')}
+                      aria-pressed={c.status === 'REJECTED'}
+                    >
                       Не подходит
                     </button>
                     {c.inspectionId && (
