@@ -21,7 +21,7 @@ const statusOptions: SelectionStatus[] = [
 export function AdminSelectionDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selections, inspections, updateSelectionStatus, addInspection, generateId } = useAppStore();
+  const { selections, inspections, experts, updateSelectionStatus, addInspection, generateId } = useAppStore();
 
   const selection = useMemo(() => selections.find((s) => s.id === id), [selections, id]);
   if (!selection) {
@@ -31,6 +31,9 @@ export function AdminSelectionDetailsPage() {
 
   const related = inspections.filter((i) => selection.inspectionIds.includes(i.id));
   const candidates = selection.candidates ?? [];
+  const expert = selection.assignedExpertId
+    ? experts.find((ex) => ex.id === selection.assignedExpertId)
+    : undefined;
 
   const createInspectionFromCandidate = (candidate: Candidate) => {
     const newId = generateId('OSM');
@@ -129,6 +132,30 @@ export function AdminSelectionDetailsPage() {
             Осмотров: {selection.inspectionIds.length}
           </span>
         </div>
+        <div className="stat-card">
+          <span className="stat-card__label">Эксперт</span>
+          {expert ? (
+            <>
+              <span className="stat-card__value">{expert.name}</span>
+              <span className="badge status--active">
+                <span className="badge__dot" />
+                {expert.phone}
+              </span>
+              <span className="badge">
+                <span className="badge__dot" />
+                Рейтинг: {expert.rating}
+              </span>
+              <Link className="chip chip--ghost" to="/chat">
+                Написать эксперту
+              </Link>
+            </>
+          ) : (
+            <span className="badge status--warn">
+              <span className="badge__dot" />
+              Эксперт не назначен
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="table-card" style={{ padding: 16 }}>
@@ -188,6 +215,13 @@ export function AdminSelectionDetailsPage() {
                 </td>
               </tr>
             ))}
+            {candidates.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: 16, color: 'var(--text-secondary)' }}>
+                  Пока нет кандидатов — ищем и предложим варианты
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -221,6 +255,13 @@ export function AdminSelectionDetailsPage() {
                 </td>
               </tr>
             ))}
+            {related.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: 16, color: 'var(--text-secondary)' }}>
+                  Пока нет осмотров по подбору
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

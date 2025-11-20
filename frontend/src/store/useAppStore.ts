@@ -11,10 +11,11 @@ import type {
   ChatThread,
   ChatMessage,
   LegalCheck,
+  Candidate,
 } from '../types';
 
 const STORAGE_KEY = 'car-expert-demo-state';
-const STORAGE_VERSION = 'v3';
+const STORAGE_VERSION = 'v5';
 
 export interface AppState {
   inspections: InspectionOrder[];
@@ -29,6 +30,7 @@ export interface AppState {
   setCurrentExpert: (expertId: string | null) => void;
   updateInspectionStatus: (id: string, status: InspectionStatus) => void;
   updateSelectionStatus: (id: string, status: SelectionStatus) => void;
+  claimSelection: (selectionId: string, expertId: string) => void;
   assignExpert: (inspectionId: string, expertId: string | null) => void;
   updateAppointment: (inspectionId: string, appointmentAt: string | null) => void;
   addInspection: (order: InspectionOrder) => void;
@@ -53,6 +55,9 @@ export interface AppState {
   addChatThread: (thread: ChatThread) => void;
   resetChats: () => void;
   updateCandidateStatus: (selectionId: string, candidateId: string, status: 'APPROVED' | 'REJECTED' | 'PENDING') => void;
+  addCandidate: (selectionId: string, candidate: Candidate) => void;
+  linkCandidateInspection: (selectionId: string, candidateId: string, inspectionId: string) => void;
+  addInspectionToSelection: (selectionId: string, inspectionId: string) => void;
 }
 
 function loadInitialState() {
@@ -97,6 +102,19 @@ export const useAppStore = create<AppState>((set, _get) => ({
     set((state) => ({
       selections: state.selections.map((selection) =>
         selection.id === id ? { ...selection, status, updatedAt: new Date().toISOString() } : selection
+      ),
+    })),
+  claimSelection: (selectionId, expertId) =>
+    set((state) => ({
+      selections: state.selections.map((selection) =>
+        selection.id === selectionId
+          ? {
+              ...selection,
+              assignedExpertId: expertId,
+              status: selection.status === 'NEW' || selection.status === 'WAITING_FOR_EXPERT' ? 'ASSIGNED' : selection.status,
+              updatedAt: new Date().toISOString(),
+            }
+          : selection
       ),
     })),
   assignExpert: (inspectionId, expertId) =>
@@ -212,6 +230,39 @@ export const useAppStore = create<AppState>((set, _get) => ({
               ...sel,
               candidates: (sel.candidates ?? []).map((c) => (c.id === candidateId ? { ...c, status } : c)),
             }
+          : sel
+      ),
+    })),
+  addCandidate: (selectionId, candidate) =>
+    set((state) => ({
+      selections: state.selections.map((sel) =>
+        sel.id === selectionId
+          ? {
+              ...sel,
+              candidates: [...(sel.candidates ?? []), candidate],
+              updatedAt: new Date().toISOString(),
+            }
+          : sel
+      ),
+    })),
+  linkCandidateInspection: (selectionId, candidateId, inspectionId) =>
+    set((state) => ({
+      selections: state.selections.map((sel) =>
+        sel.id === selectionId
+          ? {
+              ...sel,
+              candidates: (sel.candidates ?? []).map((c) =>
+                c.id === candidateId ? { ...c, inspectionId } : c
+              ),
+            }
+          : sel
+      ),
+    })),
+  addInspectionToSelection: (selectionId, inspectionId) =>
+    set((state) => ({
+      selections: state.selections.map((sel) =>
+        sel.id === selectionId
+          ? { ...sel, inspectionIds: [...sel.inspectionIds, inspectionId], updatedAt: new Date().toISOString() }
           : sel
       ),
     })),

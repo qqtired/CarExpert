@@ -284,9 +284,10 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
   color: var(--text-primary);
@@ -297,6 +298,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  margin-right: 2px;
 }
 
 .status--new { background: var(--accent-ghost); color: var(--accent-strong); }
@@ -464,7 +466,7 @@
 
 .chat-shell {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 12px;
   height: calc(100vh - 80px);
 }
@@ -619,14 +621,32 @@
 
 .field input,
 .field select,
-.field textarea {
+.field textarea,
+.candidate-form__field input,
+.candidate-form__comment {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   padding: 10px 12px;
   font-family: inherit;
   font-size: 14px;
-  background: #fff;
+  background: var(--bg-muted);
   color: var(--text-primary);
+  box-shadow: inset 0 1px 2px rgba(15, 26, 44, 0.06);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, transform 0.05s ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.candidate-form__field input:focus,
+.candidate-form__comment:focus {
+  outline: none;
+  background: #fff;
+  border-color: rgba(142, 45, 253, 0.6);
+  box-shadow:
+    0 0 0 1px rgba(142, 45, 253, 0.18),
+    0 8px 18px rgba(15, 26, 44, 0.12);
+  transform: translateY(-0.5px);
 }
 
 .field textarea {
@@ -638,4 +658,138 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.order-tracker__cell {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.report-section {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.report-section__title {
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.report-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.report-item {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 32px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.report-item__label {
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.report-item__value {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.pulse {
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.candidate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.candidate-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.candidate-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+  flex: 1;
+}
+
+.candidate-form__field span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.candidate-form__field--wide {
+  flex: 2;
+  min-width: 220px;
+}
+
+.candidate-form__footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.candidate-form__comment {
+  flex: 1;
+}
+
+.severity-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  background: var(--bg-muted);
+}
+
+.severity-dot.status--danger {
+  background: rgba(250, 93, 93, 0.25);
+  border-color: #fa5d5d;
+}
+
+.severity-dot.status--warn {
+  background: rgba(255, 176, 32, 0.2);
+  border-color: #ffb020;
+}
+
+.severity-dot.status--active {
+  background: rgba(42, 200, 215, 0.2);
+  border-color: #2ac8d7;
 }

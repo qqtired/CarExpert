@@ -168,7 +168,9 @@ export function AdminOrdersPage() {
                     <span>{formatDate(order.createdAt)}</span>
                     <span className="badge status--warn">
                       <span className="badge__dot" />
-                      {order.appointmentAt ? `Визит: ${formatDate(order.appointmentAt)}` : 'Ожидает слот'}
+                      {order.appointmentAt
+                        ? `Последнее обновление: ${formatDate(order.updatedAt)}`
+                        : 'Последнее обновление: нет данных'}
                     </span>
                   </div>
                 </td>

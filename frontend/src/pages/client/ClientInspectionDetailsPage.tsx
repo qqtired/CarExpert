@@ -2,14 +2,31 @@ import { useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useAppStore } from '../../store/useAppStore';
+import type { ChecklistItem, ChecklistTemplate } from '../../types';
 import '../../App.css';
+
+function formatValue(item: ChecklistItem, value: unknown) {
+  if (value === undefined || value === null || value === '') return '—';
+  if (item.type === 'enum' && item.options) {
+    const option = item.options.find((opt) => opt.value === value);
+    return option ? option.label : String(value);
+  }
+  if (item.type === 'boolean') return value ? 'Да' : 'Нет';
+  if (item.type === 'number') return typeof value === 'number' ? value : Number(value);
+  return String(value);
+}
 
 export function ClientInspectionDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { inspections, experts } = useAppStore();
+  const { inspections, experts, checklistTemplates } = useAppStore();
 
   const order = useMemo(() => inspections.find((o) => o.id === id), [inspections, id]);
+  const template: ChecklistTemplate | undefined = useMemo(() => {
+    const rpt = order?.report;
+    if (!rpt) return undefined;
+    return checklistTemplates.find((tpl) => tpl.id === rpt.templateId) ?? checklistTemplates[0];
+  }, [order, checklistTemplates]);
 
   if (!order) {
     navigate('/client/inspections');
@@ -96,7 +113,7 @@ export function ClientInspectionDetailsPage() {
             {report.recommendedDiscount && (
               <span className="badge">
                 <span className="badge__dot" />
-                Рекомендуемая скидка: {report.recommendedDiscount.min.toLocaleString('ru-RU')}–{report.recommendedDiscount.max.toLocaleString('ru-RU')} ₽
+                Рекомендации по торгу: {report.recommendedDiscount.min.toLocaleString('ru-RU')} ₽
               </span>
             )}
             {report.legalCheck && (
@@ -117,13 +134,38 @@ export function ClientInspectionDetailsPage() {
                 )}
               </div>
             )}
+            {template && (
+              <div className="report-grid">
+                {template.sections.map((section) => (
+                  <div key={section.id} className="report-section">
+                    <div className="report-section__title">{section.title}</div>
+                    <div className="report-items">
+                      {section.items.map((item) => {
+                        const sectionData = (report.data as Record<string, Record<string, unknown>> | undefined)?.[section.id];
+                        const flatValue = (report.data as Record<string, unknown> | undefined)?.[item.id];
+                        const value = sectionData ? sectionData[item.id] : flatValue;
+                        const severity = report.severities?.[item.id];
+                        const severityClass =
+                          severity === 'BAD' ? 'status--danger' : severity === 'WARN' ? 'status--warn' : 'status--active';
+                        return (
+                          <div key={item.id} className="report-item">
+                            <div className="report-item__label">{item.label}</div>
+                            <div className="report-item__value">{formatValue(item, value)}</div>
+                            {severity && (
+                              <span className={`severity-dot ${severityClass}`} title={severity === 'BAD' ? 'Риск' : 'Внимание'} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="actions">
-              <a className="chip chip--ghost" href={report.webUrl} target="_blank" rel="noreferrer">
-                Web
-              </a>
-              <a className="chip chip--ghost" href={report.pdfUrl} target="_blank" rel="noreferrer">
-                PDF
-              </a>
+              <button className="chip chip--ghost" type="button" disabled>
+                Экспорт в PDF (скоро)
+              </button>
             </div>
           </div>
         ) : (

@@ -75,7 +75,7 @@ export function ClientNewOrder() {
     const newOrder: InspectionOrder = {
       id,
       status: 'WAITING_FOR_EXPERT',
-      sourceUrl: inspectionForm.sourceUrl || 'https://example.com/auto',
+      sourceUrl: inspectionForm.sourceUrl || 'https://auto.ru/cars/new/group/vaz/iskra/23983214/24098513/1129720348-a363fe7e/',
       parsedData: {
         make: inspectionForm.make || 'Марка',
         model: inspectionForm.model || 'Модель',
@@ -113,6 +113,7 @@ export function ClientNewOrder() {
     const selection: SelectionOrder = {
       id,
       status: 'WAITING_FOR_EXPERT',
+      assignedExpertId: null,
       city: selectionForm.city,
       cityFrom: selectionForm.city,
       cityTarget: selectionForm.cityTarget,

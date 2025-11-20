@@ -76,7 +76,7 @@ export function AdminCreateInspectionPage() {
     const newOrder: InspectionOrder = {
       id,
       status: 'WAITING_FOR_EXPERT',
-      sourceUrl: form.sourceUrl || 'https://example.com/auto',
+      sourceUrl: form.sourceUrl || 'https://auto.ru/cars/new/group/vaz/iskra/23983214/24098513/1129720348-a363fe7e/',
       parsedData: {
         make: form.make || 'Марка',
         model: form.model || 'Модель',
@@ -109,6 +109,7 @@ export function AdminCreateInspectionPage() {
     const selection: SelectionOrder = {
       id,
       status: 'WAITING_FOR_EXPERT',
+      assignedExpertId: null,
       city: selectionForm.city,
       cityFrom: selectionForm.cityFrom,
       cityTarget: selectionForm.cityTarget,

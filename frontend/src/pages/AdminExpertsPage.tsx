@@ -135,10 +135,6 @@ export function AdminExpertsPage() {
                         <Phone size={14} />
                         {expert.phone}
                       </span>
-                      <div className="badge status--active">
-                        <span className="badge__dot" />
-                        {expert.specialization ?? 'universal'}
-                      </div>
                     </div>
                   </td>
                   <td>
@@ -281,12 +277,8 @@ function ExpertModal({
 
         <div className="cards-grid">
           <div className="stat-card">
-            <span className="stat-card__label">Специализация</span>
-            <span className="badge status--active">
-              <span className="badge__dot" />
-              {expert.specialization ?? 'universal'}
-            </span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+            <span className="stat-card__label">Услуги</span>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {(expert.services ?? []).map((s) => (
                 <span key={s} className="pill">
                   {s}

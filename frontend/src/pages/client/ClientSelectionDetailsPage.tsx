@@ -8,7 +8,7 @@ import '../../App.css';
 export function ClientSelectionDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selections, inspections, updateCandidateStatus } = useAppStore();
+  const { selections, inspections, experts, updateCandidateStatus } = useAppStore();
 
   const selection = useMemo(() => selections.find((s) => s.id === id), [selections, id]);
   if (!selection) {
@@ -18,6 +18,9 @@ export function ClientSelectionDetailsPage() {
 
   const related = inspections.filter((i) => selection.inspectionIds.includes(i.id));
   const candidates = selection.candidates ?? [];
+  const expert = selection.assignedExpertId
+    ? experts.find((ex) => ex.id === selection.assignedExpertId)
+    : undefined;
 
   const onCandidate = (candidate: Candidate, status: 'APPROVED' | 'REJECTED') => {
     updateCandidateStatus(selection.id, candidate.id, status);
@@ -56,6 +59,30 @@ export function ClientSelectionDetailsPage() {
             <span className="badge__dot" />
             Дедлайн: {selection.deadline ?? '—'}
           </span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-card__label">Эксперт</span>
+          {expert ? (
+            <>
+              <span className="stat-card__value">{expert.name}</span>
+              <span className="badge status--active">
+                <span className="badge__dot" />
+                {expert.phone}
+              </span>
+              <span className="badge">
+                <span className="badge__dot" />
+                Рейтинг: {expert.rating}
+              </span>
+              <Link className="chip chip--ghost" to="/chat">
+                Написать эксперту
+              </Link>
+            </>
+          ) : (
+            <span className="badge status--warn">
+              <span className="badge__dot" />
+              Эксперт назначается
+            </span>
+          )}
         </div>
       </div>
 
@@ -134,6 +161,13 @@ export function ClientSelectionDetailsPage() {
                 </td>
               </tr>
             ))}
+            {candidates.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: 16 }}>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Пока нет предложений, ищем</span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -163,6 +197,13 @@ export function ClientSelectionDetailsPage() {
                 </td>
               </tr>
             ))}
+            {related.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center', padding: 16 }}>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Пока нет осмотров по подбору</span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

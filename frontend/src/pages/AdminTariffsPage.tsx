@@ -65,7 +65,7 @@ export function AdminTariffsPage() {
         <div className="form-grid">
           <div className="field">
             <label>Тип</label>
-            <select value={form.kind} onChange={(e) => setForm((prev) => ({ ...prev, kind: e.target.value as any }))}>
+            <select value={form.kind} onChange={(e) => setForm((prev) => ({ ...prev, kind: e.target.value as 'inspection' | 'selection' }))}>
               <option value="inspection">Осмотр</option>
               <option value="selection">Комплексный подбор</option>
             </select>

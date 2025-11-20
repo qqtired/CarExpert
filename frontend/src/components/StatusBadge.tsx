@@ -5,7 +5,7 @@ type BadgeMode = 'inspection' | 'selection';
 const statusLabels: Record<InspectionStatus | SelectionStatus, string> = {
   NEW: 'Новая',
   WAITING_FOR_EXPERT: 'Ждёт эксперта',
-  ASSIGNED: 'Назначена',
+  ASSIGNED: 'Эксперт назначен',
   IN_PROGRESS: 'Осмотр в работе',
   REPORT_IN_PROGRESS: 'Подготовка отчёта',
   DONE: 'Отчёт готов',

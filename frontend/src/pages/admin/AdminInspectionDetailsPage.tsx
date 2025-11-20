@@ -2,8 +2,19 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useAppStore } from '../../store/useAppStore';
-import type { InspectionStatus } from '../../types';
+import type { ChecklistItem, ChecklistTemplate, InspectionStatus } from '../../types';
 import '../../App.css';
+
+function formatValue(item: ChecklistItem, value: unknown) {
+  if (value === undefined || value === null || value === '') return '—';
+  if (item.type === 'enum' && item.options) {
+    const option = item.options.find((opt) => opt.value === value);
+    return option ? option.label : String(value);
+  }
+  if (item.type === 'boolean') return value ? 'Да' : 'Нет';
+  if (item.type === 'number') return typeof value === 'number' ? value : Number(value);
+  return String(value);
+}
 
 const statusOptions: InspectionStatus[] = [
   'NEW',
@@ -18,8 +29,15 @@ const statusOptions: InspectionStatus[] = [
 export function AdminInspectionDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { inspections, experts, updateInspectionStatus, assignExpert, updateAppointment, updateInspectionFields } =
-    useAppStore();
+  const {
+    inspections,
+    experts,
+    checklistTemplates,
+    updateInspectionStatus,
+    assignExpert,
+    updateAppointment,
+    updateInspectionFields,
+  } = useAppStore();
 
   const order = useMemo(() => inspections.find((o) => o.id === id), [inspections, id]);
   const [expertId, setExpertId] = useState(order?.expertId ?? '');
@@ -27,6 +45,11 @@ export function AdminInspectionDetailsPage() {
   const [summary, setSummary] = useState(order?.summary ?? '');
   const [priceSegment, setPriceSegment] = useState(order?.priceSegment ?? '');
   const [address, setAddress] = useState(order?.address ?? '');
+  const template: ChecklistTemplate | undefined = useMemo(() => {
+    const rpt = order?.report;
+    if (!rpt) return undefined;
+    return checklistTemplates.find((tpl) => tpl.id === rpt.templateId) ?? checklistTemplates[0];
+  }, [order, checklistTemplates]);
 
   if (!order) {
     navigate('/admin/inspections');
@@ -154,7 +177,7 @@ export function AdminInspectionDetailsPage() {
             {order.report.recommendedDiscount && (
               <span className="badge status--warn">
                 <span className="badge__dot" />
-                Скидка: {order.report.recommendedDiscount.min.toLocaleString('ru-RU')}–{order.report.recommendedDiscount.max.toLocaleString('ru-RU')} ₽
+                Рекомендации по торгу: {order.report.recommendedDiscount.min.toLocaleString('ru-RU')} ₽
               </span>
             )}
             {order.report.legalCheck && (
@@ -181,13 +204,38 @@ export function AdminInspectionDetailsPage() {
                 )}
               </div>
             )}
+            {template && (
+              <div className="report-grid">
+                {template.sections.map((section) => (
+                  <div key={section.id} className="report-section">
+                    <div className="report-section__title">{section.title}</div>
+                    <div className="report-items">
+                      {section.items.map((item) => {
+                        const sectionData = (order.report?.data as Record<string, Record<string, unknown>> | undefined)?.[section.id];
+                        const flatValue = (order.report?.data as Record<string, unknown> | undefined)?.[item.id];
+                        const value = sectionData ? sectionData[item.id] : flatValue;
+                        const severity = order.report?.severities?.[item.id];
+                        const severityClass =
+                          severity === 'BAD' ? 'status--danger' : severity === 'WARN' ? 'status--warn' : 'status--active';
+                        return (
+                          <div key={item.id} className="report-item">
+                            <div className="report-item__label">{item.label}</div>
+                            <div className="report-item__value">{formatValue(item, value)}</div>
+                            {severity && (
+                              <span className={`severity-dot ${severityClass}`} title={severity === 'BAD' ? 'Риск' : 'Внимание'} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="actions">
-              <a className="chip chip--ghost" href={order.report.webUrl} target="_blank" rel="noreferrer">
-                Web
-              </a>
-              <a className="chip chip--ghost" href={order.report.pdfUrl} target="_blank" rel="noreferrer">
-                PDF
-              </a>
+              <button className="chip chip--ghost" type="button" disabled>
+                Экспорт в PDF (скоро)
+              </button>
             </div>
           </div>
         ) : (

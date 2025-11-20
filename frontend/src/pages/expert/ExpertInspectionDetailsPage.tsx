@@ -11,15 +11,30 @@ export function ExpertInspectionDetailsPage() {
   const order = useMemo(() => inspections.find((o) => o.id === id), [inspections, id]);
   const template = checklistTemplates[0];
 
+  const buildInitialFormData = () => {
+    const result: Record<string, any> = {};
+    if (order?.report?.data && template) {
+      template.sections.forEach((section) => {
+        section.items.forEach((item) => {
+          const nestedVal = (order.report?.data as any)?.[section.id]?.[item.id];
+          if (nestedVal !== undefined) result[item.id] = nestedVal;
+          const sev = order.report?.severities?.[item.id];
+          if (sev) result[`${item.id}_severity`] = sev;
+        });
+      });
+    }
+    return result;
+  };
+
   const [summary, setSummary] = useState(order?.report?.summary ?? '');
-  const [discMin, setDiscMin] = useState(order?.report?.recommendedDiscount?.min ?? 0);
-  const [discMax, setDiscMax] = useState(order?.report?.recommendedDiscount?.max ?? 0);
+  const [torhAmount, setTorhAmount] = useState(order?.report?.recommendedDiscount?.min ?? 0);
   const [discComment, setDiscComment] = useState(order?.report?.recommendedDiscount?.comment ?? '');
-  const [formData, setFormData] = useState<Record<string, any>>((order?.report?.data as Record<string, any>) ?? {});
+  const [formData, setFormData] = useState<Record<string, any>>(buildInitialFormData());
   const [legalPledge, setLegalPledge] = useState<'OK' | 'RISK' | 'BAD' | ''>((order?.report?.legalCheck?.pledge as any) ?? '');
   const [legalRestr, setLegalRestr] = useState<'OK' | 'RISK' | 'BAD' | ''>((order?.report?.legalCheck?.restrictions as any) ?? '');
   const [legalFines, setLegalFines] = useState<'OK' | 'RISK' | 'BAD' | ''>((order?.report?.legalCheck?.fines as any) ?? '');
   const [legalNotes, setLegalNotes] = useState(order?.report?.legalCheck?.notes ?? '');
+  const [savedToast, setSavedToast] = useState(false);
 
   if (!order) {
     navigate('/expert/inspections');
@@ -27,16 +42,41 @@ export function ExpertInspectionDetailsPage() {
   }
 
   const expert = order.expertId ? experts.find((ex) => ex.id === order.expertId) : null;
+  const isInProgress = order.status === 'IN_PROGRESS';
+  const isReport = order.status === 'REPORT_IN_PROGRESS';
+  const isDone = order.status === 'DONE';
 
   const onSave = () => {
+    const structuredData: Record<string, Record<string, unknown>> = {};
+    template?.sections.forEach((section) => {
+      const sectionValues: Record<string, unknown> = {};
+      section.items.forEach((item) => {
+        const val = formData[item.id];
+        if (val !== undefined && val !== '') {
+          sectionValues[item.id] = val;
+        }
+      });
+      if (Object.keys(sectionValues).length) structuredData[section.id] = sectionValues;
+    });
+
+    const severities: Record<string, 'OK' | 'WARN' | 'BAD'> = {};
+    template?.sections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.severityEnabled) {
+          const sev = (formData[`${item.id}_severity`] as 'OK' | 'WARN' | 'BAD') ?? 'OK';
+          severities[item.id] = sev;
+        }
+      });
+    });
+
     upsertReport(order.id, {
       summary: summary || 'Отчёт сохранён',
       recommendedDiscount: {
-        min: discMin || 0,
-        max: discMax || 0,
+        min: torhAmount || 0,
+        max: torhAmount || 0,
         comment: discComment || '',
       },
-      data: formData,
+      data: structuredData,
       legalCheck:
         legalPledge || legalRestr || legalFines || legalNotes
           ? {
@@ -46,12 +86,10 @@ export function ExpertInspectionDetailsPage() {
               notes: legalNotes || undefined,
             }
           : undefined,
-      severities: Object.fromEntries(
-        Object.entries(formData)
-          .filter(([key]) => template?.sections.some((s) => s.items.some((i) => i.id === key && i.severityEnabled)))
-          .map(([key]) => [key, (formData[`${key}_severity`] as 'OK' | 'WARN' | 'BAD') ?? 'OK'])
-      ),
+      severities,
     });
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3000);
   };
 
   const onSetStatus = (status: any) => updateInspectionStatus(order.id, status);
@@ -102,13 +140,22 @@ export function ExpertInspectionDetailsPage() {
           <span className="stat-card__label">Эксперт</span>
           <span className="stat-card__value">{expert?.name ?? 'Не назначен'}</span>
           <div className="actions">
-            <button className="chip chip--ghost" onClick={() => onSetStatus('IN_PROGRESS')}>
-              В работу
+            <button
+              className={`chip ${isInProgress ? 'chip--primary is-active' : 'chip--ghost'}`}
+              onClick={() => onSetStatus('IN_PROGRESS')}
+            >
+              В работе
             </button>
-            <button className="chip chip--ghost" onClick={() => onSetStatus('REPORT_IN_PROGRESS')}>
+            <button
+              className={`chip ${isReport ? 'chip--primary is-active' : 'chip--ghost'}`}
+              onClick={() => onSetStatus('REPORT_IN_PROGRESS')}
+            >
               Пишу отчёт
             </button>
-            <button className="chip chip--primary" onClick={() => onSetStatus('DONE')}>
+            <button
+              className={`chip ${isDone ? 'chip--primary is-active' : 'chip--ghost'}`}
+              onClick={() => onSetStatus('DONE')}
+            >
               Завершить
             </button>
           </div>
@@ -217,29 +264,31 @@ export function ExpertInspectionDetailsPage() {
       )}
 
       <div className="table-card" style={{ padding: 16 }}>
-        <h4 style={{ margin: '0 0 8px' }}>Рекомендация и скидка</h4>
+        <h4 style={{ margin: '0 0 8px' }}>Рекомендация и торг</h4>
         <div className="form-grid">
           <div className="field">
             <label>Итоговый вывод</label>
             <textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Рекомендуем / С оговорками / Не рекомендуем" />
           </div>
           <div className="field">
-            <label>Скидка, мин (₽)</label>
-            <input type="number" value={discMin} onChange={(e) => setDiscMin(Number(e.target.value))} />
+            <label>Возможный торг (₽)</label>
+            <input type="number" value={torhAmount} onChange={(e) => setTorhAmount(Number(e.target.value))} />
           </div>
           <div className="field">
-            <label>Скидка, макс (₽)</label>
-            <input type="number" value={discMax} onChange={(e) => setDiscMax(Number(e.target.value))} />
-          </div>
-          <div className="field">
-            <label>Комментарий по скидке</label>
+            <label>Комментарий по торгу</label>
             <textarea value={discComment} onChange={(e) => setDiscComment(e.target.value)} placeholder="Что починить/заменить" />
           </div>
         </div>
         <div className="actions" style={{ marginTop: 12 }}>
-          <button className="chip chip--primary" onClick={onSave}>
+          <button className={`chip chip--primary ${savedToast ? 'pulse' : ''}`} onClick={onSave}>
             Сохранить отчёт
           </button>
+          {savedToast && (
+            <span className="badge status--done" style={{ marginLeft: 8 }}>
+              <span className="badge__dot" />
+              Сохранено
+            </span>
+          )}
         </div>
       </div>
 

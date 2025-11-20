@@ -90,6 +90,7 @@ export interface InspectionOrder {
 export interface SelectionOrder {
   id: string;
   status: SelectionStatus;
+  assignedExpertId?: string | null;
   city: string;
   cityFrom?: string;
   cityTarget?: string;
