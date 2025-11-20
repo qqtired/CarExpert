@@ -174,7 +174,7 @@ export function ExpertInspectionsPage() {
                 </td>
                 <td>
                   <div className="actions">
-                    <button className="chip chip--primary" onClick={() => claimInspection(order.id, currentExpertId)}>
+                    <button className="chip chip--primary" onClick={() => { if (currentExpertId) claimInspection(order.id, currentExpertId); }}>
                       Взять
                     </button>
                   </div>
@@ -209,7 +209,7 @@ export function ExpertInspectionsPage() {
                   <StatusBadge status={sel.status} mode="selection" />
                 </td>
                 <td>
-                  <button className="chip chip--primary" onClick={() => claimSelection(sel.id, currentExpertId)}>
+                  <button className="chip chip--primary" onClick={() => { if (currentExpertId) claimSelection(sel.id, currentExpertId); }}>
                     Взять подбор
                   </button>
                 </td>
